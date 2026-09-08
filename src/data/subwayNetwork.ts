@@ -283,9 +283,11 @@ export const SUBWAY_EDGES: SubwayEdge[] = [
     'st_jay_metrotech', 'st_4th_9th_f', 'st_7th_ave_f'
   ], 'G', '#6CBE45'),
 
-  // E Blue Line cross-river to LIC Court Sq
+  // E Blue Line cross-river to LIC Court Sq & 53rd St Crosstown to 8th Ave
   { from: 'st_51_green', to: 'st_court_sq_7', line: 'E', color: '#0039A6', minutes: 3 },
   { from: 'st_court_sq_7', to: 'st_51_green', line: 'E', color: '#0039A6', minutes: 3 },
+  { from: 'st_50_blue', to: 'st_51_green', line: 'E', color: '#0039A6', minutes: 2 },
+  { from: 'st_51_green', to: 'st_50_blue', line: 'E', color: '#0039A6', minutes: 2 },
 
   // New Jersey PATH Lines
   // PATH Downtown Hudson Tubes (WTC <-> Exchange Place)

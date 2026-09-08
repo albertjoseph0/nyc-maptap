@@ -225,11 +225,8 @@ export function calculateSubwayRoute(
   const startCandidates = findCandidateStations(fromPoint, fromRegion, allowPath, 3);
   const endCandidates = findCandidateStations(toPoint, toRegion, allowPath, 4);
 
-  // If both map to the same station, walk directly (only if same region)
-  if (
-    startCandidates[0]?.station.id === endCandidates[0]?.station.id &&
-    fromRegion === toRegion
-  ) {
+  // If both map to the same station, direct walking is always appropriate
+  if (startCandidates[0]?.station.id === endCandidates[0]?.station.id) {
     const walkMins = Math.max(3, Math.round(directDistMiles * 20));
     return {
       totalMinutes: walkMins,
@@ -250,12 +247,13 @@ export function calculateSubwayRoute(
 
   for (const start of startCandidates) {
     for (const end of endCandidates) {
+      if (start.station.id === end.station.id) continue;
       const dijkstraResult = solveSubwayDijkstra(
         start.station.id,
         end.station.id,
         allowPath
       );
-      if (!dijkstraResult || dijkstraResult.pathStations.length === 0) continue;
+      if (!dijkstraResult || dijkstraResult.pathStations.length === 0 || dijkstraResult.linesUsed.length === 0) continue;
 
       // Realistic human transit preference: walking + train ride + 4-minute penalty per transfer
       const transferCount = Math.max(0, dijkstraResult.linesUsed.length - 1);
@@ -273,9 +271,9 @@ export function calculateSubwayRoute(
     }
   }
 
-  if (!bestRoute) {
+  if (!bestRoute || bestRoute.dijkstra.linesUsed.length === 0) {
     // Fallback: direct walking
-    const walkMins = Math.max(5, Math.round(directDistMiles * 20));
+    const walkMins = Math.max(3, Math.round(directDistMiles * 20));
     return {
       totalMinutes: walkMins,
       transitType: 'walk',
