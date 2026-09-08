@@ -73,9 +73,14 @@ export const App: React.FC = () => {
 
       {/* Top Status Bar (Safe Area Protected) */}
       <header className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between pointer-events-none px-6 pt-[max(0.875rem,env(safe-area-inset-top))]">
-        <span className="text-xs uppercase tracking-widest text-neutral-400 font-semibold drop-shadow-md">
-          NYC MapTap
-        </span>
+        <div className="flex items-center gap-2 drop-shadow-md">
+          <span className="text-xs uppercase tracking-widest text-neutral-400 font-semibold">
+            NYC MapTap
+          </span>
+          <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/10 text-neutral-400 font-medium tracking-wider">
+            Metro Core
+          </span>
+        </div>
         {!isGameOver && (
           <div className="text-xs font-mono tracking-tight text-neutral-400 flex items-center gap-3 drop-shadow-md">
             <span>
@@ -90,12 +95,12 @@ export const App: React.FC = () => {
 
       {/* Sleek Floating Prompt Pill (Target to find) */}
       {!isGameOver && !lastResult && currentTarget && (
-        <div className="absolute top-[max(3.25rem,calc(env(safe-area-inset-top)+2.5rem))] left-1/2 -translate-x-1/2 z-20 pointer-events-none animate-in fade-in zoom-in-95 duration-200 w-[90%] max-w-sm">
-          <div className="bg-neutral-900/90 backdrop-blur-xl border border-white/10 px-6 py-4 rounded-2xl shadow-2xl text-center">
-            <span className="text-[10px] uppercase tracking-widest text-emerald-400/90 font-bold block mb-1">
+        <div className="absolute top-[max(3.25rem,calc(env(safe-area-inset-top)+2.5rem))] left-1/2 -translate-x-1/2 z-20 pointer-events-none animate-in fade-in zoom-in-95 duration-200 w-[88%] max-w-sm">
+          <div className="bg-neutral-900/90 backdrop-blur-xl border border-white/10 px-5 py-2.5 rounded-2xl shadow-2xl text-center">
+            <span className="text-[10px] uppercase tracking-widest text-emerald-400/90 font-bold block mb-0.5">
               Locate Neighborhood
             </span>
-            <h1 className="text-2xl font-black text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
               {currentTarget.name}
             </h1>
             {currentTarget.regionName && (

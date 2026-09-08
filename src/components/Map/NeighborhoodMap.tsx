@@ -29,13 +29,13 @@ export const NeighborhoodMap: React.FC<NeighborhoodMapProps> = ({
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-      center: [-73.982, 40.735],
-      zoom: isMobile ? 10.9 : 11.4,
+      center: [-73.985, 40.728],
+      zoom: isMobile ? 10.45 : 11.1,
       minZoom: 10.0, // Allow zooming out enough to see the full regional transit route
       maxZoom: 16.5,
       maxBounds: [
-        [-74.15, 40.63],
-        [-73.80, 40.92],
+        [-74.30, 40.25],
+        [-73.70, 41.20],
       ],
       attributionControl: false,
       dragRotate: false,
@@ -86,20 +86,20 @@ export const NeighborhoodMap: React.FC<NeighborhoodMapProps> = ({
         type: 'fill',
         source: 'neighborhoods',
         paint: {
-          'fill-color': '#1E293B',
-          'fill-opacity': 0.12,
+          'fill-color': '#334155',
+          'fill-opacity': 0.14,
         },
       });
 
-      // Subtle Borders Layer
+      // Crisp Borders Layer (makes parcels across Hudson & East Rivers clearly defined)
       map.addLayer({
         id: 'neighborhood-borders',
         type: 'line',
         source: 'neighborhoods',
         paint: {
-          'line-color': '#334155',
-          'line-width': 1,
-          'line-opacity': 0.6,
+          'line-color': '#475569',
+          'line-width': 1.2,
+          'line-opacity': 0.85,
         },
       });
 
@@ -202,14 +202,25 @@ export const NeighborhoodMap: React.FC<NeighborhoodMapProps> = ({
         userMarkerRef.current.remove();
         userMarkerRef.current = null;
       }
-      map.setPaintProperty('neighborhood-fills', 'fill-color', '#1E293B');
-      map.setPaintProperty('neighborhood-fills', 'fill-opacity', 0.12);
-      map.setPaintProperty('neighborhood-borders', 'line-color', '#334155');
-      map.setPaintProperty('neighborhood-borders', 'line-width', 1);
+      map.setPaintProperty('neighborhood-fills', 'fill-color', '#334155');
+      map.setPaintProperty('neighborhood-fills', 'fill-opacity', 0.14);
+      map.setPaintProperty('neighborhood-borders', 'line-color', '#475569');
+      map.setPaintProperty('neighborhood-borders', 'line-width', 1.2);
+      map.setPaintProperty('neighborhood-borders', 'line-opacity', 0.85);
 
       walkingSource?.setData({ type: 'FeatureCollection', features: [] });
       trackSource?.setData({ type: 'FeatureCollection', features: [] });
       stationsSource?.setData({ type: 'FeatureCollection', features: [] });
+
+      // Smoothly return to full metropolitan overview with zeroed padding
+      const isMobile = window.innerWidth < 640;
+      map.flyTo({
+        center: [-73.985, 40.728],
+        zoom: isMobile ? 10.45 : 11.1,
+        padding: { top: 0, bottom: 0, left: 0, right: 0 },
+        duration: 700,
+        essential: true,
+      });
       return;
     }
 
