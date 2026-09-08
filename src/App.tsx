@@ -164,7 +164,9 @@ export const App: React.FC = () => {
                         {lastResult.subwayRoute.totalMinutes} min
                       </strong>
                       <span className="text-neutral-400"> to </span>
-                      <span className="text-neutral-200 font-semibold">{currentTarget.name}</span>
+                      <span className="text-neutral-200 font-semibold">
+                        {currentTarget.name.replace(/\s*(\/|\().*$/, '')}
+                      </span>
                     </span>
                   </div>
                 )}
