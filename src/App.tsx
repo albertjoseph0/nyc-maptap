@@ -3,6 +3,7 @@ import { Neighborhood, RoundResult } from './types/game';
 import { MANHATTAN_NEIGHBORHOODS } from './data/neighborhoods';
 import { isPointInNeighborhood, findNeighborhoodAtPoint } from './utils/geo';
 import { calculateSubwayRoute } from './utils/subwayRouting';
+import { MTA_LINE_COLORS } from './data/subwayNetwork';
 import { NeighborhoodMap } from './components/Map/NeighborhoodMap';
 
 const TOTAL_ROUNDS = 10;
@@ -89,74 +90,84 @@ export const App: React.FC = () => {
 
       {/* Floating Prompt & Feedback (Center Top with Dynamic Safe Margin) */}
       {!isGameOver && currentTarget && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20 pointer-events-none w-full max-w-md px-4 pt-[calc(max(0.875rem,env(safe-area-inset-top))+2.25rem)]">
-          <div className="text-center py-3 px-5 bg-black/85 backdrop-blur-md rounded-2xl border border-neutral-800/80 shadow-2xl transition-all">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20 pointer-events-none w-full max-w-sm px-4 pt-[calc(max(0.875rem,env(safe-area-inset-top))+2.25rem)]">
+          <div className="text-center py-3.5 px-6 bg-black/85 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.85)] ring-1 ring-white/5 transition-all duration-300">
             {!lastResult ? (
               <div>
-                <span className="text-[11px] uppercase tracking-wider text-neutral-400 font-semibold block">
-                  Find
+                <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-400 block mb-0.5">
+                  Locate
                 </span>
-                <h1 className="text-2xl font-bold tracking-tight text-white mt-0.5">
+                <h1 className="text-2xl font-black tracking-tight text-white">
                   {currentTarget.name}
                 </h1>
               </div>
             ) : lastResult.isCorrect ? (
-              <div className="text-emerald-400">
-                <span className="text-xs uppercase font-bold tracking-wider block">
-                  ✓ Correct
-                </span>
-                <h1 className="text-xl font-bold text-white mt-0.5">
+              <div className="animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-center gap-1.5 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-0.5">
+                  <span>🎯</span>
+                  <span>Spot On</span>
+                </div>
+                <h1 className="text-xl font-black tracking-tight text-white">
                   {currentTarget.name}
                 </h1>
               </div>
             ) : (
-              <div className="space-y-2">
-                {/* Header Tag */}
-                <div className="flex items-center justify-center gap-2 text-rose-400 text-xs font-bold uppercase tracking-wider">
-                  <span>✗ Missed</span>
-                  <span className="text-neutral-500 font-normal">·</span>
-                  <span className="text-neutral-300 font-medium lowercase">
-                    tapped {lastResult.tapped ? lastResult.tapped.name : 'water / outskirts'}
-                  </span>
+              <div className="space-y-1.5 animate-in fade-in duration-200">
+                {/* Punchy Witty Correction */}
+                <div className="flex items-center justify-center gap-1.5">
+                  <span className="text-rose-400 text-xs font-semibold">✕</span>
+                  <h2 className="text-base sm:text-lg font-black tracking-tight text-white">
+                    {lastResult.tapped ? `That's ${lastResult.tapped.name}` : "You're in the water!"}
+                  </h2>
                 </div>
 
-                {/* Subway Transit Route Card */}
+                {/* Single-Surface Transit Pill */}
                 {lastResult.subwayRoute && (
-                  <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-2.5 text-left text-xs space-y-1.5 shadow-inner">
-                    <div className="flex items-center gap-2">
-                      {lastResult.subwayRoute.transitType === 'subway' ? (
-                        <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center font-black text-white text-[11px] shadow-sm shrink-0 font-sans"
-                          style={{ backgroundColor: lastResult.subwayRoute.lineColor }}
-                        >
-                          {lastResult.subwayRoute.lineBullet}
-                        </div>
-                      ) : (
-                        <span className="text-base leading-none">🚶</span>
-                      )}
-                      <span className="font-semibold text-white text-xs">
-                        {lastResult.subwayRoute.summary}
-                      </span>
-                    </div>
-
-                    {lastResult.subwayRoute.boardStationName && (
-                      <div className="text-[11px] text-neutral-400 pl-7 leading-tight">
-                        <span>Board at </span>
-                        <strong className="text-neutral-200">
-                          {lastResult.subwayRoute.boardStationName}
-                        </strong>
-                        <span> → Exit at </span>
-                        <strong className="text-neutral-200">
-                          {lastResult.subwayRoute.alightStationName}
-                        </strong>
+                  <div className="flex items-center justify-center gap-2 pt-0.5 text-xs text-neutral-300 font-medium">
+                    {lastResult.subwayRoute.transitType === 'subway' ? (
+                      <div className="flex items-center gap-1 shrink-0">
+                        {(() => {
+                          const route = lastResult.subwayRoute;
+                          const lines: string[] = [];
+                          if (route.summary.includes('via')) {
+                            const parts = route.summary.split('via')[1]?.trim().split('to') || [];
+                            parts.forEach((p) => lines.push(p.trim()));
+                          } else if (route.lineBullet) {
+                            lines.push(route.lineBullet);
+                          }
+                          return lines.map((line, idx) => (
+                            <React.Fragment key={idx}>
+                              {idx > 0 && (
+                                <span className="text-neutral-500 text-[10px] font-bold">→</span>
+                              )}
+                              <span
+                                className="w-5 h-5 rounded-full inline-flex items-center justify-center font-black text-white text-[11px] shadow-sm leading-none"
+                                style={{
+                                  backgroundColor:
+                                    MTA_LINE_COLORS[line] || route.lineColor || '#EE352E',
+                                }}
+                              >
+                                {line}
+                              </span>
+                            </React.Fragment>
+                          ));
+                        })()}
                       </div>
+                    ) : (
+                      <span className="text-neutral-400 shrink-0 text-sm">🚶</span>
                     )}
+
+                    <span className="text-neutral-500">·</span>
+
+                    <span className="text-neutral-200">
+                      <strong className="text-white font-bold">
+                        {lastResult.subwayRoute.totalMinutes} min
+                      </strong>
+                      <span className="text-neutral-400"> to </span>
+                      <span className="text-neutral-200 font-semibold">{currentTarget.name}</span>
+                    </span>
                   </div>
                 )}
-
-                <span className="text-[11px] text-emerald-400 font-medium block">
-                  {currentTarget.name} illuminated on map
-                </span>
               </div>
             )}
           </div>
