@@ -170,13 +170,13 @@ export const SUBWAY_STATIONS: SubwayStation[] = [
   { id: 'st_grove_st', name: 'Grove Street (Jersey City)', coordinates: [-74.042, 40.719], lines: ['PATH'], region: 'nj' },
   { id: 'st_journal_sq', name: 'Journal Square (Jersey City)', coordinates: [-74.063, 40.732], lines: ['PATH'], region: 'nj' },
 
-  // Manhattan PATH Terminus & Transfer Stations
-  { id: 'st_wtc_path', name: 'World Trade Center (PATH)', coordinates: [-74.011, 40.712], lines: ['PATH'], region: 'manhattan' },
-  { id: 'st_christopher_path', name: 'Christopher St (PATH)', coordinates: [-74.007, 40.733], lines: ['PATH'], region: 'manhattan' },
-  { id: 'st_9_path', name: '9 St (PATH)', coordinates: [-73.999, 40.735], lines: ['PATH'], region: 'manhattan' },
-  { id: 'st_14_path', name: '14 St (PATH)', coordinates: [-73.997, 40.738], lines: ['PATH'], region: 'manhattan' },
-  { id: 'st_23_path', name: '23 St (PATH)', coordinates: [-73.993, 40.743], lines: ['PATH'], region: 'manhattan' },
-  { id: 'st_33_path', name: '33 St (PATH)', coordinates: [-73.989, 40.748], lines: ['PATH'], region: 'manhattan' },
+  // Manhattan PATH Terminus & Transfer Stations (quarantined to interstate NJ trips)
+  { id: 'st_wtc_path', name: 'World Trade Center (PATH)', coordinates: [-74.011, 40.712], lines: ['PATH'], region: 'nj_transfer' },
+  { id: 'st_christopher_path', name: 'Christopher St (PATH)', coordinates: [-74.007, 40.733], lines: ['PATH'], region: 'nj_transfer' },
+  { id: 'st_9_path', name: '9 St (PATH)', coordinates: [-73.999, 40.735], lines: ['PATH'], region: 'nj_transfer' },
+  { id: 'st_14_path', name: '14 St (PATH)', coordinates: [-73.997, 40.738], lines: ['PATH'], region: 'nj_transfer' },
+  { id: 'st_23_path', name: '23 St (PATH)', coordinates: [-73.993, 40.743], lines: ['PATH'], region: 'nj_transfer' },
+  { id: 'st_33_path', name: '33 St (PATH)', coordinates: [-73.989, 40.748], lines: ['PATH'], region: 'nj_transfer' },
 ];
 
 export const SUBWAY_STATIONS_MAP = new Map<string, SubwayStation>(
@@ -227,7 +227,7 @@ export const SUBWAY_EDGES: SubwayEdge[] = [
 
   // B/D/F/M Orange Track
   ...createLineTrack([
-    'st_delancey_orange', 'st_broadway_lafayette', 'st_14_orange', 'st_23_orange',
+    'st_delancey_orange', 'st_broadway_lafayette', 'st_west_4_blue', 'st_14_orange', 'st_23_orange',
     'st_34_herald_orange', 'st_42_bryant_orange', 'st_47_50_rockefeller'
   ], 'F', '#FF6319'),
 
@@ -333,9 +333,13 @@ export const SUBWAY_EDGES: SubwayEdge[] = [
   { from: 'st_14_blue', to: 'st_8_ave_l', line: 'Transfer', color: '#94A3B8', minutes: 2 },
   { from: 'st_8_ave_l', to: 'st_14_blue', line: 'Transfer', color: '#94A3B8', minutes: 2 },
 
-  // 14 St 6 Ave (Orange, L, PATH)
+  // 14 St 6 Ave (Orange, L, PATH) & 7 Ave (Red) Passageway
   { from: 'st_14_orange', to: 'st_6_ave_l', line: 'Transfer', color: '#94A3B8', minutes: 2 },
   { from: 'st_6_ave_l', to: 'st_14_orange', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_14_red', to: 'st_14_orange', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_14_orange', to: 'st_14_red', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_14_red', to: 'st_6_ave_l', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_6_ave_l', to: 'st_14_red', line: 'Transfer', color: '#94A3B8', minutes: 2 },
   { from: 'st_14_path', to: 'st_14_orange', line: 'Transfer', color: '#94A3B8', minutes: 1 },
   { from: 'st_14_orange', to: 'st_14_path', line: 'Transfer', color: '#94A3B8', minutes: 1 },
   { from: 'st_14_path', to: 'st_6_ave_l', line: 'Transfer', color: '#94A3B8', minutes: 1 },
@@ -375,7 +379,7 @@ export const SUBWAY_EDGES: SubwayEdge[] = [
   { from: 'st_borough_hall', to: 'st_jay_metrotech', line: 'Transfer', color: '#94A3B8', minutes: 2 },
   { from: 'st_jay_metrotech', to: 'st_borough_hall', line: 'Transfer', color: '#94A3B8', minutes: 2 },
 
-  // West 4 St (Blue & Orange)
-  { from: 'st_west_4_blue', to: 'st_broadway_lafayette', line: 'Transfer', color: '#94A3B8', minutes: 4 },
-  { from: 'st_broadway_lafayette', to: 'st_west_4_blue', line: 'Transfer', color: '#94A3B8', minutes: 4 },
+  // Bleecker St / Broadway-Lafayette Complex (Green 6 & Orange B/D/F/M)
+  { from: 'st_broadway_lafayette', to: 'st_bleecker_green', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_bleecker_green', to: 'st_broadway_lafayette', line: 'Transfer', color: '#94A3B8', minutes: 2 },
 ];

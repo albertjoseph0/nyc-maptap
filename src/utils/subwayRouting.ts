@@ -45,33 +45,58 @@ export function detectRegionForPoint(point: [number, number]): 'manhattan' | 'br
   return 'manhattan';
 }
 
+export function findCandidateStations(
+  point: [number, number],
+  preferredRegion?: 'manhattan' | 'brooklyn' | 'queens' | 'nj',
+  allowNjTransfers: boolean = false,
+  limit: number = 4
+): {
+  station: SubwayStation;
+  distMiles: number;
+  walkMinutes: number;
+}[] {
+  const region = preferredRegion || detectRegionForPoint(point);
+  const candidateStations = SUBWAY_STATIONS.filter((s) => {
+    // If NJ transfers are not allowed, never pick a station with region === 'nj_transfer' or pure PATH stations
+    if (!allowNjTransfers && (s.region === 'nj_transfer' || (s.lines.length === 1 && s.lines[0] === 'PATH'))) {
+      return false;
+    }
+    if ((s.region || 'manhattan') === region) return true;
+    if (allowNjTransfers && s.region === 'nj_transfer') return true;
+    return false;
+  });
+  const stationsToSearch =
+    candidateStations.length > 0
+      ? candidateStations
+      : SUBWAY_STATIONS.filter((s) => allowNjTransfers || (s.region !== 'nj_transfer' && s.lines[0] !== 'PATH'));
+
+  return stationsToSearch
+    .map((station) => {
+      const distMiles = getDistanceMiles(point, station.coordinates);
+      const walkMinutes = Math.max(1, Math.round(distMiles * 20)); // ~20 min per mile (3 mph)
+      return { station, distMiles, walkMinutes };
+    })
+    .sort((a, b) => a.distMiles - b.distMiles)
+    .slice(0, limit);
+}
+
 export function findNearestStation(
   point: [number, number],
-  preferredRegion?: 'manhattan' | 'brooklyn' | 'queens' | 'nj'
+  preferredRegion?: 'manhattan' | 'brooklyn' | 'queens' | 'nj',
+  allowNjTransfers: boolean = false
 ): {
   station: SubwayStation;
   distMiles: number;
   walkMinutes: number;
 } {
-  const region = preferredRegion || detectRegionForPoint(point);
-  const candidateStations = SUBWAY_STATIONS.filter(
-    (s) => (s.region || 'manhattan') === region
-  );
-  const stationsToSearch = candidateStations.length > 0 ? candidateStations : SUBWAY_STATIONS;
-
-  let nearest: SubwayStation = stationsToSearch[0];
-  let minDistance = Infinity;
-
-  for (const st of stationsToSearch) {
-    const d = getDistanceMiles(point, st.coordinates);
-    if (d < minDistance) {
-      minDistance = d;
-      nearest = st;
+  const candidates = findCandidateStations(point, preferredRegion, allowNjTransfers, 1);
+  return (
+    candidates[0] || {
+      station: SUBWAY_STATIONS[0],
+      distMiles: 1,
+      walkMinutes: 5,
     }
-  }
-
-  const walkMinutes = Math.max(1, Math.round(minDistance * 20)); // ~20 min per mile (3 mph)
-  return { station: nearest, distMiles: minDistance, walkMinutes };
+  );
 }
 
 interface DijkstraNode {
@@ -85,7 +110,8 @@ interface DijkstraNode {
  */
 function solveSubwayDijkstra(
   startId: string,
-  endId: string
+  endId: string,
+  allowPath: boolean = true
 ): { pathStations: SubwayStation[]; linesUsed: string[]; totalSubwayTime: number } | null {
   if (startId === endId) {
     const st = SUBWAY_STATIONS_MAP.get(startId);
@@ -95,6 +121,14 @@ function solveSubwayDijkstra(
   // Build adjacency list
   const adj = new Map<string, SubwayEdge[]>();
   for (const edge of SUBWAY_EDGES) {
+    if (!allowPath) {
+      if (edge.line === 'PATH') continue;
+      const fromSt = SUBWAY_STATIONS_MAP.get(edge.from);
+      const toSt = SUBWAY_STATIONS_MAP.get(edge.to);
+      if (fromSt?.region === 'nj_transfer' || toSt?.region === 'nj_transfer') continue;
+      if (fromSt?.lines.length === 1 && fromSt.lines[0] === 'PATH') continue;
+      if (toSt?.lines.length === 1 && toSt.lines[0] === 'PATH') continue;
+    }
     if (!adj.has(edge.from)) adj.set(edge.from, []);
     adj.get(edge.from)!.push(edge);
   }
@@ -172,6 +206,9 @@ export function calculateSubwayRoute(
     : detectRegionForPoint(fromPoint);
   const toRegion = normalizeRegion(targetNeighborhood.region);
 
+  // PATH is strictly reserved for trips between New Jersey and New York, or within New Jersey
+  const allowPath = fromRegion === 'nj' || toRegion === 'nj';
+
   // If very close (< 0.45 miles / ~9 blocks) AND in the same landmass/region, walking directly is faster!
   if (fromRegion === toRegion && directDistMiles < 0.45) {
     const walkMins = Math.max(2, Math.round(directDistMiles * 20));
@@ -185,11 +222,14 @@ export function calculateSubwayRoute(
     };
   }
 
-  const startStationInfo = findNearestStation(fromPoint, fromRegion);
-  const endStationInfo = findNearestStation(toPoint, toRegion);
+  const startCandidates = findCandidateStations(fromPoint, fromRegion, allowPath, 3);
+  const endCandidates = findCandidateStations(toPoint, toRegion, allowPath, 4);
 
   // If both map to the same station, walk directly (only if same region)
-  if (startStationInfo.station.id === endStationInfo.station.id && fromRegion === toRegion) {
+  if (
+    startCandidates[0]?.station.id === endCandidates[0]?.station.id &&
+    fromRegion === toRegion
+  ) {
     const walkMins = Math.max(3, Math.round(directDistMiles * 20));
     return {
       totalMinutes: walkMins,
@@ -201,12 +241,39 @@ export function calculateSubwayRoute(
     };
   }
 
-  const dijkstraResult = solveSubwayDijkstra(
-    startStationInfo.station.id,
-    endStationInfo.station.id
-  );
+  let bestRoute: {
+    start: { station: SubwayStation; distMiles: number; walkMinutes: number };
+    end: { station: SubwayStation; distMiles: number; walkMinutes: number };
+    dijkstra: { pathStations: SubwayStation[]; linesUsed: string[]; totalSubwayTime: number };
+    perceivedCost: number;
+  } | null = null;
 
-  if (!dijkstraResult || dijkstraResult.pathStations.length === 0) {
+  for (const start of startCandidates) {
+    for (const end of endCandidates) {
+      const dijkstraResult = solveSubwayDijkstra(
+        start.station.id,
+        end.station.id,
+        allowPath
+      );
+      if (!dijkstraResult || dijkstraResult.pathStations.length === 0) continue;
+
+      // Realistic human transit preference: walking + train ride + 4-minute penalty per transfer
+      const transferCount = Math.max(0, dijkstraResult.linesUsed.length - 1);
+      const perceivedCost =
+        start.walkMinutes + dijkstraResult.totalSubwayTime + end.walkMinutes + transferCount * 4;
+
+      if (!bestRoute || perceivedCost < bestRoute.perceivedCost) {
+        bestRoute = {
+          start,
+          end,
+          dijkstra: dijkstraResult,
+          perceivedCost,
+        };
+      }
+    }
+  }
+
+  if (!bestRoute) {
     // Fallback: direct walking
     const walkMins = Math.max(5, Math.round(directDistMiles * 20));
     return {
@@ -219,13 +286,12 @@ export function calculateSubwayRoute(
     };
   }
 
-  const { pathStations, linesUsed, totalSubwayTime } = dijkstraResult;
+  const { start, end, dijkstra } = bestRoute;
+  const { pathStations, linesUsed, totalSubwayTime } = dijkstra;
   const primaryLine = linesUsed[0] || '1';
   const lineColor = MTA_LINE_COLORS[primaryLine] || '#EE352E';
 
-  const totalMinutes =
-    startStationInfo.walkMinutes + totalSubwayTime + endStationInfo.walkMinutes;
-
+  const totalMinutes = start.walkMinutes + totalSubwayTime + end.walkMinutes;
   const subwayCoords = pathStations.map((s) => s.coordinates);
 
   const routeSummary =
@@ -241,10 +307,10 @@ export function calculateSubwayRoute(
     summary: routeSummary,
     lineBullet: primaryLine,
     lineColor,
-    walkingStartCoords: [fromPoint, startStationInfo.station.coordinates],
+    walkingStartCoords: [fromPoint, start.station.coordinates],
     subwayCoords,
-    walkingEndCoords: [endStationInfo.station.coordinates, toPoint],
-    boardStationName: startStationInfo.station.name,
-    alightStationName: endStationInfo.station.name,
+    walkingEndCoords: [end.station.coordinates, toPoint],
+    boardStationName: start.station.name,
+    alightStationName: end.station.name,
   };
 }
