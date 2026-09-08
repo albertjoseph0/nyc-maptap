@@ -28,6 +28,8 @@ export const MTA_LINE_COLORS: Record<string, string> = {
   'W': '#FCCC0A',
   'L': '#A7A9AC',
   '7': '#B933AD',
+  'G': '#6CBE45',
+  'PATH': '#00A6CE',
   'S': '#808183',
   'Walk': '#94A3B8',
 };
@@ -140,6 +142,41 @@ export const SUBWAY_STATIONS: SubwayStation[] = [
   { id: 'st_times_sq_7', name: 'Times Sq - 42 St', coordinates: [-73.987, 40.755], lines: ['7'] },
   { id: 'st_bryant_park_7', name: '5 Ave / Bryant Park', coordinates: [-73.982, 40.753], lines: ['7'] },
   { id: 'st_grand_central_7', name: 'Grand Central - 42 St', coordinates: [-73.977, 40.752], lines: ['7'] },
+
+  // Brooklyn Stations
+  { id: 'st_high_st', name: 'High St - Brooklyn Bridge (DUMBO)', coordinates: [-73.990, 40.699], lines: ['A', 'C'], region: 'brooklyn' },
+  { id: 'st_clark_st', name: 'Clark St (Brooklyn Heights)', coordinates: [-73.993, 40.697], lines: ['2', '3'], region: 'brooklyn' },
+  { id: 'st_borough_hall', name: 'Borough Hall (Downtown Brooklyn)', coordinates: [-73.990, 40.693], lines: ['2', '3', '4', '5', 'R'], region: 'brooklyn' },
+  { id: 'st_jay_metrotech', name: 'Jay St - MetroTech (Downtown Brooklyn)', coordinates: [-73.987, 40.692], lines: ['A', 'C', 'F', 'R'], region: 'brooklyn' },
+  { id: 'st_york_st', name: 'York St (DUMBO)', coordinates: [-73.986, 40.701], lines: ['F'], region: 'brooklyn' },
+  { id: 'st_atlantic_barclays', name: 'Atlantic Ave - Barclays Ctr', coordinates: [-73.978, 40.684], lines: ['2', '3', '4', '5', 'B', 'D', 'N', 'Q', 'R'], region: 'brooklyn' },
+  { id: 'st_bedford_l', name: 'Bedford Ave (Williamsburg)', coordinates: [-73.958, 40.717], lines: ['L'], region: 'brooklyn' },
+  { id: 'st_lorimer_l_g', name: 'Lorimer St / Metropolitan Ave (Williamsburg)', coordinates: [-73.950, 40.714], lines: ['L', 'G'], region: 'brooklyn' },
+  { id: 'st_grand_l', name: 'Grand St (Williamsburg)', coordinates: [-73.941, 40.711], lines: ['L'], region: 'brooklyn' },
+  { id: 'st_jefferson_l', name: 'Jefferson St (Bushwick)', coordinates: [-73.923, 40.706], lines: ['L'], region: 'brooklyn' },
+  { id: 'st_greenpoint_ave_g', name: 'Greenpoint Ave (Greenpoint)', coordinates: [-73.954, 40.730], lines: ['G'], region: 'brooklyn' },
+  { id: 'st_nassau_ave_g', name: 'Nassau Ave (Greenpoint)', coordinates: [-73.951, 40.724], lines: ['G'], region: 'brooklyn' },
+  { id: 'st_4th_9th_f', name: '4 Ave - 9 St (Park Slope)', coordinates: [-73.989, 40.670], lines: ['F', 'G', 'R'], region: 'brooklyn' },
+  { id: 'st_7th_ave_f', name: '7 Ave (Park Slope)', coordinates: [-73.977, 40.667], lines: ['F', 'G'], region: 'brooklyn' },
+
+  // Queens Long Island City (LIC) Stations
+  { id: 'st_vernon_jackson_7', name: 'Vernon Blvd - Jackson Ave (LIC)', coordinates: [-73.954, 40.743], lines: ['7'], region: 'queens' },
+  { id: 'st_court_sq_7', name: 'Court Sq (Long Island City)', coordinates: [-73.945, 40.747], lines: ['7', 'G', 'E', 'M'], region: 'queens' },
+
+  // New Jersey PATH Stations
+  { id: 'st_hoboken', name: 'Hoboken Terminal (PATH)', coordinates: [-74.028, 40.735], lines: ['PATH'], region: 'nj' },
+  { id: 'st_newport', name: 'Newport (Jersey City)', coordinates: [-74.034, 40.727], lines: ['PATH'], region: 'nj' },
+  { id: 'st_exchange_pl', name: 'Exchange Place (Jersey City)', coordinates: [-74.033, 40.716], lines: ['PATH'], region: 'nj' },
+  { id: 'st_grove_st', name: 'Grove Street (Jersey City)', coordinates: [-74.042, 40.719], lines: ['PATH'], region: 'nj' },
+  { id: 'st_journal_sq', name: 'Journal Square (Jersey City)', coordinates: [-74.063, 40.732], lines: ['PATH'], region: 'nj' },
+
+  // Manhattan PATH Terminus & Transfer Stations
+  { id: 'st_wtc_path', name: 'World Trade Center (PATH)', coordinates: [-74.011, 40.712], lines: ['PATH'], region: 'manhattan' },
+  { id: 'st_christopher_path', name: 'Christopher St (PATH)', coordinates: [-74.007, 40.733], lines: ['PATH'], region: 'manhattan' },
+  { id: 'st_9_path', name: '9 St (PATH)', coordinates: [-73.999, 40.735], lines: ['PATH'], region: 'manhattan' },
+  { id: 'st_14_path', name: '14 St (PATH)', coordinates: [-73.997, 40.738], lines: ['PATH'], region: 'manhattan' },
+  { id: 'st_23_path', name: '23 St (PATH)', coordinates: [-73.993, 40.743], lines: ['PATH'], region: 'manhattan' },
+  { id: 'st_33_path', name: '33 St (PATH)', coordinates: [-73.989, 40.748], lines: ['PATH'], region: 'manhattan' },
 ];
 
 export const SUBWAY_STATIONS_MAP = new Map<string, SubwayStation>(
@@ -202,17 +239,80 @@ export const SUBWAY_EDGES: SubwayEdge[] = [
     'st_86_2nd', 'st_96_2nd'
   ], 'N', '#FCCC0A'),
 
-  // L Gray Track (14th St Crosstown)
+  // L Gray Track (14th St Crosstown & Williamsburg / Bushwick)
   ...createLineTrack([
-    'st_8_ave_l', 'st_6_ave_l', 'st_union_sq_l', 'st_3_ave_l', 'st_1_ave_l'
+    'st_8_ave_l', 'st_6_ave_l', 'st_union_sq_l', 'st_3_ave_l', 'st_1_ave_l',
+    'st_bedford_l', 'st_lorimer_l_g', 'st_grand_l', 'st_jefferson_l'
   ], 'L', '#A7A9AC'),
 
-  // 7 Purple Track (42nd St Crosstown)
+  // 7 Purple Track (42nd St Crosstown & Long Island City)
   ...createLineTrack([
-    'st_34_hudson_yards', 'st_times_sq_7', 'st_bryant_park_7', 'st_grand_central_7'
+    'st_34_hudson_yards', 'st_times_sq_7', 'st_bryant_park_7', 'st_grand_central_7',
+    'st_vernon_jackson_7', 'st_court_sq_7'
   ], '7', '#B933AD'),
 
-  // Major station complex pedestrian transfers (~3-4 min transfer penalty)
+  // Brooklyn Cross-River & Trunk Connections
+  // A/C Blue Line into DUMBO & Downtown Brooklyn
+  ...createLineTrack([
+    'st_fulton_blue', 'st_high_st', 'st_jay_metrotech', 'st_atlantic_barclays'
+  ], 'A', '#0039A6'),
+
+  // 2/3 Red Line into Brooklyn Heights & Downtown Brooklyn
+  ...createLineTrack([
+    'st_fulton_red', 'st_clark_st', 'st_borough_hall', 'st_atlantic_barclays'
+  ], '2', '#EE352E'),
+
+  // 4/5 Green Line into Downtown Brooklyn
+  ...createLineTrack([
+    'st_bowling_green', 'st_borough_hall', 'st_atlantic_barclays'
+  ], '4', '#00933C'),
+
+  // F Orange Line into DUMBO & Park Slope
+  ...createLineTrack([
+    'st_delancey_orange', 'st_york_st', 'st_jay_metrotech', 'st_4th_9th_f', 'st_7th_ave_f'
+  ], 'F', '#FF6319'),
+
+  // R Yellow Line into Downtown Brooklyn
+  ...createLineTrack([
+    'st_whitehall', 'st_borough_hall'
+  ], 'R', '#FCCC0A'),
+
+  // G Crosstown Green Line (LIC Queens <-> Greenpoint <-> Williamsburg <-> Downtown Brooklyn <-> Park Slope)
+  ...createLineTrack([
+    'st_court_sq_7', 'st_greenpoint_ave_g', 'st_nassau_ave_g', 'st_lorimer_l_g',
+    'st_jay_metrotech', 'st_4th_9th_f', 'st_7th_ave_f'
+  ], 'G', '#6CBE45'),
+
+  // E Blue Line cross-river to LIC Court Sq
+  { from: 'st_51_green', to: 'st_court_sq_7', line: 'E', color: '#0039A6', minutes: 3 },
+  { from: 'st_court_sq_7', to: 'st_51_green', line: 'E', color: '#0039A6', minutes: 3 },
+
+  // New Jersey PATH Lines
+  // PATH Downtown Hudson Tubes (WTC <-> Exchange Place)
+  { from: 'st_wtc_path', to: 'st_exchange_pl', line: 'PATH', color: '#00A6CE', minutes: 4 },
+  { from: 'st_exchange_pl', to: 'st_wtc_path', line: 'PATH', color: '#00A6CE', minutes: 4 },
+
+  // PATH Uptown Hudson Tubes (Hoboken / Newport <-> Christopher St)
+  { from: 'st_hoboken', to: 'st_christopher_path', line: 'PATH', color: '#00A6CE', minutes: 8 },
+  { from: 'st_christopher_path', to: 'st_hoboken', line: 'PATH', color: '#00A6CE', minutes: 8 },
+  { from: 'st_newport', to: 'st_christopher_path', line: 'PATH', color: '#00A6CE', minutes: 7 },
+  { from: 'st_christopher_path', to: 'st_newport', line: 'PATH', color: '#00A6CE', minutes: 7 },
+
+  // PATH NJ Internal Track Connections
+  ...createLineTrack(['st_journal_sq', 'st_grove_st', 'st_exchange_pl'], 'PATH', '#00A6CE'),
+  { from: 'st_grove_st', to: 'st_newport', line: 'PATH', color: '#00A6CE', minutes: 3 },
+  { from: 'st_newport', to: 'st_grove_st', line: 'PATH', color: '#00A6CE', minutes: 3 },
+  { from: 'st_newport', to: 'st_hoboken', line: 'PATH', color: '#00A6CE', minutes: 3 },
+  { from: 'st_hoboken', to: 'st_newport', line: 'PATH', color: '#00A6CE', minutes: 3 },
+  { from: 'st_newport', to: 'st_exchange_pl', line: 'PATH', color: '#00A6CE', minutes: 3 },
+  { from: 'st_exchange_pl', to: 'st_newport', line: 'PATH', color: '#00A6CE', minutes: 3 },
+
+  // PATH Manhattan 6th Ave Trunk
+  ...createLineTrack([
+    'st_christopher_path', 'st_9_path', 'st_14_path', 'st_23_path', 'st_33_path'
+  ], 'PATH', '#00A6CE'),
+
+  // Major station complex pedestrian transfers (~2-4 min transfer penalty)
   // Times Square Complex (Red, Yellow, Purple, Port Authority Blue)
   { from: 'st_times_sq_red', to: 'st_times_sq_yellow', line: 'Transfer', color: '#94A3B8', minutes: 3 },
   { from: 'st_times_sq_yellow', to: 'st_times_sq_red', line: 'Transfer', color: '#94A3B8', minutes: 3 },
@@ -233,9 +333,13 @@ export const SUBWAY_EDGES: SubwayEdge[] = [
   { from: 'st_14_blue', to: 'st_8_ave_l', line: 'Transfer', color: '#94A3B8', minutes: 2 },
   { from: 'st_8_ave_l', to: 'st_14_blue', line: 'Transfer', color: '#94A3B8', minutes: 2 },
 
-  // 14 St 6 Ave (Orange & L)
+  // 14 St 6 Ave (Orange, L, PATH)
   { from: 'st_14_orange', to: 'st_6_ave_l', line: 'Transfer', color: '#94A3B8', minutes: 2 },
   { from: 'st_6_ave_l', to: 'st_14_orange', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_14_path', to: 'st_14_orange', line: 'Transfer', color: '#94A3B8', minutes: 1 },
+  { from: 'st_14_orange', to: 'st_14_path', line: 'Transfer', color: '#94A3B8', minutes: 1 },
+  { from: 'st_14_path', to: 'st_6_ave_l', line: 'Transfer', color: '#94A3B8', minutes: 1 },
+  { from: 'st_6_ave_l', to: 'st_14_path', line: 'Transfer', color: '#94A3B8', minutes: 1 },
 
   // Grand Central Complex (Green & Purple)
   { from: 'st_grand_central_green', to: 'st_grand_central_7', line: 'Transfer', color: '#94A3B8', minutes: 3 },
@@ -245,13 +349,31 @@ export const SUBWAY_EDGES: SubwayEdge[] = [
   { from: 'st_59_columbus_red', to: 'st_59_columbus_blue', line: 'Transfer', color: '#94A3B8', minutes: 2 },
   { from: 'st_59_columbus_blue', to: 'st_59_columbus_red', line: 'Transfer', color: '#94A3B8', minutes: 2 },
 
-  // Fulton Street Complex (Red, Green, Blue)
+  // Fulton Street / World Trade Center Complex (Red, Green, Blue, PATH)
   { from: 'st_fulton_red', to: 'st_fulton_green', line: 'Transfer', color: '#94A3B8', minutes: 3 },
   { from: 'st_fulton_green', to: 'st_fulton_red', line: 'Transfer', color: '#94A3B8', minutes: 3 },
   { from: 'st_fulton_red', to: 'st_fulton_blue', line: 'Transfer', color: '#94A3B8', minutes: 3 },
   { from: 'st_fulton_blue', to: 'st_fulton_red', line: 'Transfer', color: '#94A3B8', minutes: 3 },
   { from: 'st_fulton_green', to: 'st_fulton_blue', line: 'Transfer', color: '#94A3B8', minutes: 3 },
   { from: 'st_fulton_blue', to: 'st_fulton_green', line: 'Transfer', color: '#94A3B8', minutes: 3 },
+  { from: 'st_wtc_path', to: 'st_chambers_blue', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_chambers_blue', to: 'st_wtc_path', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_wtc_path', to: 'st_fulton_red', line: 'Transfer', color: '#94A3B8', minutes: 3 },
+  { from: 'st_fulton_red', to: 'st_wtc_path', line: 'Transfer', color: '#94A3B8', minutes: 3 },
+
+  // 33rd St PATH & 34th St Herald Sq / Penn Station
+  { from: 'st_33_path', to: 'st_34_herald_orange', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_34_herald_orange', to: 'st_33_path', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_33_path', to: 'st_34_penn_red', line: 'Transfer', color: '#94A3B8', minutes: 3 },
+  { from: 'st_34_penn_red', to: 'st_33_path', line: 'Transfer', color: '#94A3B8', minutes: 3 },
+
+  // Christopher St PATH & 1 Train
+  { from: 'st_christopher_path', to: 'st_christopher_red', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_christopher_red', to: 'st_christopher_path', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+
+  // Brooklyn Downtown Transfer (Borough Hall 2/3/4/5/R & Jay St A/C/F/R)
+  { from: 'st_borough_hall', to: 'st_jay_metrotech', line: 'Transfer', color: '#94A3B8', minutes: 2 },
+  { from: 'st_jay_metrotech', to: 'st_borough_hall', line: 'Transfer', color: '#94A3B8', minutes: 2 },
 
   // West 4 St (Blue & Orange)
   { from: 'st_west_4_blue', to: 'st_broadway_lafayette', line: 'Transfer', color: '#94A3B8', minutes: 4 },

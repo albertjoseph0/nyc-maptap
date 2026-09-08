@@ -24,6 +24,7 @@ export interface SubwayStation {
   name: string;
   coordinates: [number, number]; // [lng, lat]
   lines: string[]; // e.g. ['1', '2', '3']
+  region?: 'manhattan' | 'brooklyn' | 'queens' | 'nj';
 }
 
 export interface SubwayRoute {

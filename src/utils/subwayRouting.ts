@@ -24,15 +24,45 @@ function getDistanceMiles(from: [number, number], to: [number, number]): number 
   return R * c;
 }
 
-export function findNearestStation(point: [number, number]): {
+export function normalizeRegion(region?: string): 'manhattan' | 'brooklyn' | 'queens' | 'nj' {
+  if (!region) return 'manhattan';
+  const r = region.toLowerCase();
+  if (r.includes('brooklyn') || r === 'bk') return 'brooklyn';
+  if (r.includes('queens') || r.includes('lic')) return 'queens';
+  if (r.includes('nj') || r.includes('hoboken') || r.includes('jersey')) return 'nj';
+  return 'manhattan';
+}
+
+export function detectRegionForPoint(point: [number, number]): 'manhattan' | 'brooklyn' | 'queens' | 'nj' {
+  const [lng, lat] = point;
+  // West of Hudson River -> NJ
+  if (lng < -74.020) return 'nj';
+  // Queens (LIC: north of Newtown Creek, east of East River)
+  if (lng > -73.962 && lat >= 40.735) return 'queens';
+  // Brooklyn (south of Newtown Creek, east of East River)
+  if (lng > -73.985 && lat < 40.735) return 'brooklyn';
+  if (lng > -74.015 && lat < 40.702) return 'brooklyn';
+  return 'manhattan';
+}
+
+export function findNearestStation(
+  point: [number, number],
+  preferredRegion?: 'manhattan' | 'brooklyn' | 'queens' | 'nj'
+): {
   station: SubwayStation;
   distMiles: number;
   walkMinutes: number;
 } {
-  let nearest: SubwayStation = SUBWAY_STATIONS[0];
+  const region = preferredRegion || detectRegionForPoint(point);
+  const candidateStations = SUBWAY_STATIONS.filter(
+    (s) => (s.region || 'manhattan') === region
+  );
+  const stationsToSearch = candidateStations.length > 0 ? candidateStations : SUBWAY_STATIONS;
+
+  let nearest: SubwayStation = stationsToSearch[0];
   let minDistance = Infinity;
 
-  for (const st of SUBWAY_STATIONS) {
+  for (const st of stationsToSearch) {
     const d = getDistanceMiles(point, st.coordinates);
     if (d < minDistance) {
       minDistance = d;
@@ -133,12 +163,17 @@ function solveSubwayDijkstra(
 export function calculateSubwayRoute(
   fromPoint: [number, number],
   toPoint: [number, number],
-  targetNeighborhood: Neighborhood
+  targetNeighborhood: Neighborhood,
+  tappedNeighborhood?: Neighborhood | null
 ): SubwayRoute {
   const directDistMiles = getDistanceMiles(fromPoint, toPoint);
+  const fromRegion = tappedNeighborhood
+    ? normalizeRegion(tappedNeighborhood.region)
+    : detectRegionForPoint(fromPoint);
+  const toRegion = normalizeRegion(targetNeighborhood.region);
 
-  // If very close (< 0.45 miles / ~9 blocks), walking directly is faster!
-  if (directDistMiles < 0.45) {
+  // If very close (< 0.45 miles / ~9 blocks) AND in the same landmass/region, walking directly is faster!
+  if (fromRegion === toRegion && directDistMiles < 0.45) {
     const walkMins = Math.max(2, Math.round(directDistMiles * 20));
     return {
       totalMinutes: walkMins,
@@ -150,11 +185,11 @@ export function calculateSubwayRoute(
     };
   }
 
-  const startStationInfo = findNearestStation(fromPoint);
-  const endStationInfo = findNearestStation(toPoint);
+  const startStationInfo = findNearestStation(fromPoint, fromRegion);
+  const endStationInfo = findNearestStation(toPoint, toRegion);
 
-  // If both map to the same station, walk directly
-  if (startStationInfo.station.id === endStationInfo.station.id) {
+  // If both map to the same station, walk directly (only if same region)
+  if (startStationInfo.station.id === endStationInfo.station.id && fromRegion === toRegion) {
     const walkMins = Math.max(3, Math.round(directDistMiles * 20));
     return {
       totalMinutes: walkMins,
@@ -196,6 +231,8 @@ export function calculateSubwayRoute(
   const routeSummary =
     linesUsed.length > 1
       ? `${totalMinutes}-min trip via ${linesUsed.join(' to ')}`
+      : primaryLine === 'PATH'
+      ? `${totalMinutes}-min ride on the PATH train`
       : `${totalMinutes}-min ride on the ${primaryLine} train`;
 
   return {

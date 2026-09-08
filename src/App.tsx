@@ -41,7 +41,7 @@ export const App: React.FC = () => {
       setScore((s) => s + 1);
     } else {
       // Calculate fastest subway route from user's tap to target neighborhood center
-      subwayRoute = calculateSubwayRoute(point, currentTarget.center, currentTarget);
+      subwayRoute = calculateSubwayRoute(point, currentTarget.center, currentTarget, tapped);
     }
 
     setLastResult({
@@ -88,50 +88,61 @@ export const App: React.FC = () => {
         )}
       </header>
 
-      {/* Floating Prompt & Feedback (Center Top with Dynamic Safe Margin) */}
-      {!isGameOver && currentTarget && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20 pointer-events-none w-full max-w-sm px-4 pt-[calc(max(0.875rem,env(safe-area-inset-top))+2.25rem)]">
-          <div className="text-center py-3.5 px-6 bg-black/85 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.85)] ring-1 ring-white/5 transition-all duration-300">
-            {!lastResult ? (
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-400 block mb-0.5">
-                  Locate
+      {/* Sleek Floating Prompt Pill (Target to find) */}
+      {!isGameOver && !lastResult && currentTarget && (
+        <div className="absolute top-[max(3.25rem,calc(env(safe-area-inset-top)+2.5rem))] left-1/2 -translate-x-1/2 z-20 pointer-events-none animate-in fade-in zoom-in-95 duration-200 w-[90%] max-w-sm">
+          <div className="bg-neutral-900/90 backdrop-blur-xl border border-white/10 px-6 py-4 rounded-2xl shadow-2xl text-center">
+            <span className="text-[10px] uppercase tracking-widest text-emerald-400/90 font-bold block mb-1">
+              Locate Neighborhood
+            </span>
+            <h1 className="text-2xl font-black text-white tracking-tight">
+              {currentTarget.name}
+            </h1>
+            {currentTarget.regionName && (
+              <p className="text-[11px] text-neutral-400 mt-0.5 font-medium">
+                {currentTarget.regionName}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Apple Dynamic Island Style Floating Feedback Card */}
+      {!isGameOver && lastResult && (
+        <div className="absolute top-[max(3.25rem,calc(env(safe-area-inset-top)+2.5rem))] left-1/2 -translate-x-1/2 z-20 pointer-events-none animate-in fade-in slide-in-from-top-3 duration-300 w-[92%] max-w-md">
+          <div className="bg-neutral-950/90 backdrop-blur-2xl border border-white/12 px-5 py-3.5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] text-center">
+            {lastResult.isCorrect ? (
+              <div className="flex items-center justify-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 inline-flex items-center justify-center text-xs font-black">
+                  ✓
                 </span>
-                <h1 className="text-2xl font-black tracking-tight text-white">
-                  {currentTarget.name}
-                </h1>
-              </div>
-            ) : lastResult.isCorrect ? (
-              <div className="animate-in fade-in zoom-in-95 duration-200">
-                <div className="flex items-center justify-center gap-1.5 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-0.5">
-                  <span>🎯</span>
-                  <span>Spot On</span>
-                </div>
-                <h1 className="text-xl font-black tracking-tight text-white">
-                  {currentTarget.name}
-                </h1>
+                <span className="text-sm font-bold text-white tracking-tight">
+                  Spot on! That's {currentTarget.name}
+                </span>
               </div>
             ) : (
-              <div className="space-y-1.5 animate-in fade-in duration-200">
-                {/* Punchy Witty Correction */}
-                <div className="flex items-center justify-center gap-1.5">
-                  <span className="text-rose-400 text-xs font-semibold">✕</span>
-                  <h2 className="text-base sm:text-lg font-black tracking-tight text-white">
-                    {lastResult.tapped ? `That's ${lastResult.tapped.name}` : "You're in the water!"}
-                  </h2>
+              <div className="flex flex-col items-center gap-1.5">
+                {/* Line 1: What was tapped */}
+                <div className="flex items-center justify-center gap-2 text-xs">
+                  <span className="text-rose-400 font-bold">✕</span>
+                  <span className="text-neutral-300 font-medium">
+                    {lastResult.tapped
+                      ? `That's ${lastResult.tapped.name}`
+                      : 'That was in the water / out of bounds'}
+                  </span>
                 </div>
 
-                {/* Single-Surface Transit Pill */}
+                {/* Line 2: Transit connection route pill */}
                 {lastResult.subwayRoute && (
-                  <div className="flex items-center justify-center gap-2 pt-0.5 text-xs text-neutral-300 font-medium">
+                  <div className="flex items-center justify-center gap-2 text-[13px] flex-wrap">
                     {lastResult.subwayRoute.transitType === 'subway' ? (
                       <div className="flex items-center gap-1 shrink-0">
                         {(() => {
-                          const route = lastResult.subwayRoute;
+                          const route = lastResult.subwayRoute!;
+                          const match = route.summary.match(/via (.*)$/);
                           const lines: string[] = [];
-                          if (route.summary.includes('via')) {
-                            const parts = route.summary.split('via')[1]?.trim().split('to') || [];
-                            parts.forEach((p) => lines.push(p.trim()));
+                          if (match && match[1]) {
+                            match[1].split(' to ').forEach((l) => lines.push(l.trim()));
                           } else if (route.lineBullet) {
                             lines.push(route.lineBullet);
                           }
@@ -141,7 +152,11 @@ export const App: React.FC = () => {
                                 <span className="text-neutral-500 text-[10px] font-bold">→</span>
                               )}
                               <span
-                                className="w-5 h-5 rounded-full inline-flex items-center justify-center font-black text-white text-[11px] shadow-sm leading-none"
+                                className={`h-5 inline-flex items-center justify-center font-black text-white shadow-sm leading-none ${
+                                  line.length > 2
+                                    ? 'px-1.5 rounded-md text-[9px] tracking-wider'
+                                    : 'w-5 rounded-full text-[11px]'
+                                }`}
                                 style={{
                                   backgroundColor:
                                     MTA_LINE_COLORS[line] || route.lineColor || '#EE352E',
@@ -205,7 +220,7 @@ export const App: React.FC = () => {
                 ? 'Mastery level knowledge.'
                 : score >= 5
                 ? 'Solid spatial instinct.'
-                : 'Keep exploring the island.'}
+                : 'Keep exploring the city & boroughs.'}
             </p>
             <button
               onClick={startNewGame}

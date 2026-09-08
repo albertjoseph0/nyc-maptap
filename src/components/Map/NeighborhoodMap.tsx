@@ -25,15 +25,16 @@ export const NeighborhoodMap: React.FC<NeighborhoodMapProps> = ({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-      center: [-73.972, 40.780],
-      zoom: 11.6,
-      minZoom: 10.2, // Allow zooming out enough to see the full source-to-destination transit route
+      center: [-73.982, 40.735],
+      zoom: isMobile ? 10.9 : 11.4,
+      minZoom: 10.0, // Allow zooming out enough to see the full regional transit route
       maxZoom: 16.5,
       maxBounds: [
-        [-74.15, 40.65],
+        [-74.15, 40.63],
         [-73.80, 40.92],
       ],
       attributionControl: false,
